@@ -1,0 +1,90 @@
+pragma solidity ^0.6.12;
+
+// SPDX-License-Identifier: GPL-3.0
+
+import "./Ownable.sol";
+import "./SafeMath.sol";
+import "./Whitelist.sol";
+
+contract Production is Whitelist{
+    
+    using SafeMath for uint256;
+    // Model d'un produit
+    struct Produit {
+        uint256 id;
+        string name;
+        string name_producteur;
+        string name_propriaitaire;
+        uint date_crea;
+    }
+    
+    struct Acheteur {
+        uint256 id_a;
+        string name_acheteur;
+    }
+
+    struct Lot {
+        uint256 id_l;
+        string name_lot;
+        int quantite_prod;
+        uint256[50] lot_prod_id;
+    }
+
+    struct Producteur {
+        uint256 id_p;
+        string namep;
+    }
+    // Mapping pour visualiser les acheteurs - producteurs - lots - produits
+    mapping(uint => Acheteur) public acheteurs;
+    mapping(uint => Producteur) public producteurs;
+    mapping(uint => Lot) public lots;
+    mapping(uint => Produit) public produits;
+    // Stocker le nombre de lots - producteurs - acheteurs
+    uint public lotCount;
+    uint public acheteurCount;
+    uint public producteurCount;
+    uint public produitCount;
+
+    
+    // function ajouter 
+    function CreateProduit (string memory _name, string memory _name_producteur, uint _date) public {
+        produitCount ++;
+        produits[produitCount] = Produit(produitCount, _name, _name_producteur, _name_producteur, _date);
+    }
+    function CreateLot (string memory _namelot, uint256 _1, uint256 _2) public {
+        lotCount ++;
+        uint256[50] memory _idprods;
+        _idprods[1] = _1;
+        _idprods[2] = _2;
+        lots[lotCount] = Lot(lotCount, _namelot, 2, _idprods);
+    }
+    function addAcheteur( string memory _nameacheteur) public onlyWhitelisted {
+        acheteurCount ++;
+        acheteurs[acheteurCount] = Acheteur(acheteurCount, _nameacheteur);
+    }
+    function AddProducteur (string memory _nameproducteur)  public {
+        producteurCount ++;
+        producteurs[producteurCount] = Producteur(producteurCount, _nameproducteur);
+    }
+
+    function AddProduitToLot(uint256 _idlot,uint256 _idprod) public {
+        for(uint i=0; i < lots[_idlot].lot_prod_id.length; i++){
+            if(lots[_idlot].lot_prod_id[i] == 0){
+                lots[_idlot].quantite_prod++;
+                lots[_idlot].lot_prod_id[i] = _idprod;
+            }        
+        }
+    }
+    function AchatProduit(uint256 _idacheteura, uint256 _idproduita) public {
+        
+        produits[_idproduita].name_propriaitaire = acheteurs[_idacheteura].name_acheteur;
+    }
+    
+    function AchatLot(uint256 _idacheteur2, uint256 _idlot2) public {
+        for(uint i=0; i < lots[_idlot2].lot_prod_id.length; i++){
+            if(lots[_idlot2].lot_prod_id[i] != 0){
+                AchatProduit(_idacheteur2,lots[_idlot2].lot_prod_id[i]);
+            }
+    }
+}
+}
